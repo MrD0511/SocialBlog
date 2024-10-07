@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block body %}
+    <div class="my-3 mx-1" style="border: 1px groove gray;height: 55px; border-radius: 10px ;" >
+        <div class="mx-2 my-2" style="float: inline-start;">
+            <a href="{{url_for('user',username=user.username)}}">
+                {% if user.profilepic %}
+                    <img class="rounded-circle" src="data:image/png;base64,{{user.profilepic}}" style="height: 40px; width: 40px;">
+                {% else %}
+                    <img class="rounded-circle" src="{{url_for('static',filename='OIP.jpg')}}" style="height: 40px; width: 40px;">
+                {% endif %}
+            </a>
+        </div>
+        <div class="my-2" id="username" data-user-name="{{user.username}}">
+            <h4>{{user.username}}</h4>
+        </div>
+    </div>
+    <div style="border: 2px grove rgb(0, 0, 0);">
+        <div id="messages" class="mx-2">
+
+        </div>
+    </div>
+    <div class="my-3" style="border: 1px groove gray;bottom: 1%; position: fixed; margin: auto; background-color: rgb(248, 248, 248); border-radius: 10px; max-width: 1500px; min-width: 1000px; z-index: 1;" >
+        <form action="" id="messageForm" method="post">
+            <div class="mx-2 my-2" style="float: inline-start; ">
+                <input class="my-2" id="messageText" placeholder="Write message here" style="border-radius: 15px;">
+            </div>
+            <di>
+                <button class="btn btn-outline-primary my-3 btn-sm" type="submit" >Send</button>
+            </div>
+        </form>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded',function(){
+        showMsg()
+          const messageForm=document.getElementById('messageForm');
+          const messageText=document.getElementById('messageText');
+          let messages=document.getElementById('messages')
+          const username=document.getElementById('username').getAttribute('data-user-name')
+      messageForm.addEventListener('submit',function(event){
+        event.preventDefault();
+        var formData=new FormData();
+        const message_text=messageText.value;
+        formData.append('body',message_text);
+        fetch('/send_message/'+username,{
+            method:'POST',
+            body: formData,
+        })
+        .then(response=>response.json())
+        .then(data=>{
+              showMsg();
+          }).catch(error=>{
+              console.log('Error sending message: ',error)
+          });
+          messageText.value="";
+          showMsg()
+      });
+
+      function showMsg(){
+            let messages=document.getElementById('messages')
+            const username=document.getElementById('username').getAttribute('data-user-name')
+            console.log(username)
+            fetch('/get_message/'+username)
+            .then(response=>response.json())
+            .then(data=>{
+                messages.innerHTML="";
+                const msgList=document.createElement('div');
+                data.forEach(user => {
+                    console.log(user)
+                    const msgElement=document.createElement('div')
+                    msgElement.className="my-1"
+                    msgElement.innerHTML='<h5 style="display:inline;">'+user.username+'>  </h5><nobr><a>'+user.body+'</a>';
+                    msgList.appendChild(msgElement)
+                })
+                messages.appendChild(msgList)
+            });
+        };
+    });
+    </script>
+{% endblock body %}

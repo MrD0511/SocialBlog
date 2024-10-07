@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block body %}
+<div class="mx-3 my-2"><h1 class="header">Likes</h1></div>
+<hr>
+    {% for like in likes %}
+    <a href="{{url_for('user',username=like.username)}}">
+        <div class="my-1" style="border: 2px solid #000000; border-radius: 8px;">
+            <div style=" float: inline-start;">
+                {% if like.profilepic %}
+                    <a href="{{url_for('user',username=like.username)}}">
+                        <img class="rounded-circle mx-3 my-1" src="data:image/png;base64,{{like.profilepic}}" style="height: 40px; width: 40px; ">
+                    </a>
+                {% else %}
+                    <a href="{{url_for('user',username=like.username)}}">
+                        <img class="rounded-circle mx-3 my-1" src="{{url_for('static',filename='OIP.jpg')}}" style="height: 40px; width: 40px;">
+                    </a>
+                {% endif %}
+                
+            </div>
+            <div class="mx-6 my-2"><h3>{{like.username}}</h3></div>
+    
+    
+        
+        <!-- <div style="float: inline-end;">
+                {% if current_user.is_following(like.username) %}
+                    <a  class="btn btn-outline-primary" role="button" href="{{url_for('unfollow',username=like.username)}}">Unfollow</a>
+                {% else %}
+                    <a class="btn btn-outline-primary" role="button" href="{{url_for('follow',username=like.username)}}">Follow</a>
+                {% endif %}
+        </div> -->
+    </div>
+</a>
+    {% endfor %}
+{% endblock body %}

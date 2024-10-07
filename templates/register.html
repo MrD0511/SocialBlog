@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block body %}
+<h1>Register yourself,</h1>
+<form action="" method="post" >
+    <div class="mb-10" mb-5 >
+        <div><label class="mx-*-3">{{form.name.label}}</label> {{form.name()}}</div>
+        <div><label class="mx-*-3">{{form.email.label}}</label>  {{form.email()}}</div>
+        <div><label>{{form.username.label}}</label>{{form.username()}}</div>
+        <div><label>{{form.password.label}}</label>  {{form.password}}</div>
+        <div><label>{{form.confpass.label}}</label>  {{form.confpass}}</div>
+        <div>{{form.submit(class="btn btn-outline-primary")}}</div>
+    </div>    
+</form>
+{% endblock body %}

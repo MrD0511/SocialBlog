@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% block body %}
+
+<div class="my-4" id="first">
+    <div class="mx-3">
+            <div display: inline;>
+                {% if profile_pic %}
+                    <img class="rounded-circle" src="data:image/png;base64,{{profile_pic}}" style="height: 50px; width: 50px;">
+                {% else %}
+                    <img class="rounded-circle" src="{{url_for('static',filename='OIP.jpg')}}" style="height: 50px; width: 50px;">
+                {% endif %}
+            
+                
+            
+                <h5>{{user.username}}</h5>
+            
+        </div>
+            {% if user==current_user %}
+                    <a class="btn btn-outline-primary" class="mx-3" href="{{url_for('edit_post',username=post_file.postby,post=post_file.file_name)}}" role="button" >Edit</a>
+            {% endif %}
+            
+            {% if user==current_user %}
+                    <a class="btn btn-outline-primary" class="mx-3" href="{{url_for('del_post',file_name=post_file.file_name)}}" role="button" >Delete Post</a>
+            {% endif %}
+    </div>
+</div>
+
+<div class="my-2 post" data-postid="{{post_file.id}}">
+    <div class="mx-3">
+        <img src="data:image/png;base64,{{post_file.post}}" style="height: 100%; width: 100%">
+    </div>
+</div>
+<div class="mx-3">
+    <div style="float: inline-start;">
+        {% if current_user.has_liked_post(post_file) %}
+        <button class="btn btn-outline-danger unlike-btn" data-post-file="{{post_file.file_name}}">Unlike</button>
+        {% else %}
+            <button class="btn btn-outline-dark like-btn" data-post-file="{{post_file.file_name}}">Like</button>
+        {% endif %}
+        <div class="mx-4 like-count">{{post_file.likes.count()}}</div>
+    </div>
+    <p class="d-inline-flex gap-1">
+        <a id="collapse-btn" class="btn btn-outline-primary mx-4" data-bs-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+          Comments
+        </a>
+    </p>
+      
+    <div class="collapse" id="collapseExample">
+        <div class="card card-body my-4">
+            <div id="comment" class="mx-2">
+                <form id="comment-form">
+                    <input id="comment-content" placeholder="Comment">
+                    <button class="btn btn-outline-primary comment-btn" type="submit" >Post</button>
+                </form>
+                
+            </div>
+            <div id="comment-list" class="mx-2"></div>
+        </div>
+    </div>
+</div>
+<div class="my-3">
+    <div class="mx-3">
+        <h6>
+            {{user.username}} > {{post_file.caption}}<br>
+            {% if post_file.location %}
+            {{post_file.location}}.
+            {% endif %}
+             Posted {{ moment(post_file.datetime).fromNow() }}.
+        </h6>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded',function(){
+    fetchComments()
+    document.getElementById('comment-form').addEventListener('submit',function(event){
+        event.preventDefault();
+        var content=document.getElementById('comment-content').value;
+        let postid;
+        document.querySelectorAll('.post').forEach(function(post) {
+            postid=post.getAttribute('data-postid');
+        });
+        console.log(postid)
+        var formData=new FormData();
+        formData.append('content',content);
+        fetch('/post/'+postid+'/comment',{
+            method:'POST',
+            body:formData,
+        }).then(response=>{
+            if(response.ok){
+                return response.json()
+            }
+            else{
+                throw new Error('Failed to post comment');
+            }
+        }).then(data=>{
+            fetchComments()
+        }).catch(error=>{
+            console.log('Error:',error)
+        })
+    });
+});
+function fetchComments(){
+    let postid;
+    document.querySelectorAll('.post').forEach(function(post) {
+            postid=post.getAttribute('data-postid');
+    });
+    fetch('/post/'+postid+'/comments').then(
+    response=>response.json()).then(
+    data=>{
+        console.log('started')
+        var commentsList=document.getElementById('comment-list');
+        commentsList.innerHTML="";
+        data.forEach(comment=>{
+            var commentDiv=document.createElement('div')
+            commentDiv.className="my-1"
+            commentDiv.innerHTML='<strong>'+comment.user+'>  </strong>'+'<p>'+
+            comment.content+'    ('+comment.datetime+')'+'</p>';
+            commentsList.appendChild(commentDiv)
+        })
+    })
+}
+    $(document).ready(function() {
+        $(document).on('click','.like-btn',function(){
+            var postFile = $(this).data('post-file');
+            var btn = $(this);
+            $.get('/post/' + postFile + '/like', function(data) {
+                btn.removeClass('btn-outline-dark like-btn').addClass('btn-outline-danger unlike-btn').text('Unlike');
+                btn.siblings('.like-count').text(data.likes);
+        });
+    });
+
+    $(document).on('click','.unlike-btn',function(){
+
+            var postFile = $(this).data('post-file');
+            var btn = $(this);
+            $.get('/post/' + postFile + '/unlike', function(data) {
+                btn.removeClass('btn-outline-danger unlike-btn').addClass('btn-outline-dark like-btn').text('Like');
+                btn.siblings('.like-count').text(data.likes);
+            });
+        });
+    });
+</script>
+
+{% endblock body %}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block body %}
+    <form action="" method="POST" enctype="multipart/form-data">
+        <div>
+            <input type="file" name="image">
+            </input>
+        </div>
+        <div>
+            <label>{{form.caption.label}}</label>{{form.caption}}
+        </div>
+        <div><label>{{form.location.label}}</label>{{form.location}}</div>
+        <div>{{form.post(class="btn btn-outline-primary")}}</div>
+    </form>
+{% endblock body %}

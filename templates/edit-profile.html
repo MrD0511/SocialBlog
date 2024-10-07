@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block body %}
+<h1>Edit Profile</h1>
+<form method="post" enctype="multipart/form-data" accept="image/* ">
+    <div class="mb-10" mb-5 >
+        {{form.csrf_token}}
+    <div><label class="mx-*-3">{{form.name.label}}</label>  {{form.name}}</div>
+    <div><label>{{form.location.label}}</label>{{form.location}}</div>
+    <div><label>{{form.about_me.label}}</label>{{form.about_me}}</div>
+    <div><input type="file" id="file" name="profilepic"></div>
+    <div>{{form.submit(class="btn btn-outline-primary")}}</div>
+    </div>    
+</form>
+{% endblock body %}

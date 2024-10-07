@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+{% block body %}
+{% if current_user.is_authenticated %}
+    <h1>Hello, {{current_user.username}}</h1>
+    {% for post in posts %}
+        <div class="my-3 mx-1" style="border: 1px groove rgb(170, 170, 170);">
+            <div class="mx-2 my-2" style="float: inline-start;">
+                <a href="{{url_for('user',username=post.postby)}}">
+                    {% if post.profilepic %}
+                        <img class="rounded-circle" src="data:image/png;base64,{{post.profilepic}}" style="height: 50px; width: 50px;">
+                    {% else %}
+                        <img class="rounded-circle" src="{{url_for('static',filename='OIP.jpg')}}" style="height: 50px; width: 50px;">
+                    {% endif %}
+                </a>
+            </div>
+            <div class="my-2">
+                {{post.postby}}
+            </div>
+        
+        
+        <div class="my-1 mx-2 post" data-postid="{{post.id}}">
+            <img src="data:image/png;base64,{{post.post}}" style="height: 100%; width: 100%">
+        </div>
+        
+        <div class="mx-2" style="float: inline-start;">
+            {% if current_user.has_liked_post(post) %}
+                <button class="btn btn-dark unlike-btn" data-post-file="{{post.file_name}}">Unlike</button>
+            {% else %}
+                <button class="btn btn-danger like-btn" data-post-file="{{post.file_name}}">Like</button>
+            {% endif %}
+            <div class="like-count">
+                    <a>{{post.likes.count()}} <a style="text-decoration: none; color: black; cursor: auto;" href="{{url_for('likes',post_id=post.id)}}"> Likes</a></a>
+            </div>
+        </div>
+        <p class="d-inline-flex gap-1">
+            <a id="collapse-btn" class="btn btn-outline-primary mx-2" data-bs-toggle="collapse" href="#collapseExample-{{loop.index}}" role="button" aria-expanded="false" aria-controls="collapseExample-{{loop.index}}">
+              Comments
+            </a>
+        </p>
+          
+        <div class="collapse" id="collapseExample-{{loop.index}}">
+            <div class="card card-body my-4 mx-2">
+                <div id="comment" class="mx-2">
+                    <form id="comment-form" data-postid="{{post.id}}">
+                        <input class="comment-content" placeholder="Comment">
+                        <button class="btn btn-outline-primary comment-btn" type="submit" >Post</button>
+                    </form>
+                    
+                </div>
+                <div id="comment-list-{{post.id}}" class="mx-2"></div>
+            </div>
+        </div>
+        <br>
+        <div class="my-3 mx-2">
+            <h6>
+                {{post.postby}} > {{post.caption}}<br>
+                {% if post.location %}
+                {{post.location}}.
+                {% endif %}
+                Posted {{ moment(post.datetime).fromNow() }}.
+            </h6>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <h1>Hello, stranger</h1>
+{% endif %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded',function(){
+    $(document).ready(function() {
+        $(document).on('click','.like-btn',function(){
+            var postFile = $(this).data('post-file');
+            var btn = $(this);
+            $.get('/post/' + postFile + '/like', function(data) {
+                btn.removeClass('btn-danger like-btn').addClass('btn-dark unlike-btn').text('Unlike');
+                btn.siblings('.like-count').text(data.likes+" Likes");
+        });
+    });
+
+    $(document).on('click','.unlike-btn',function(){
+
+            var postFile = $(this).data('post-file');
+            var btn = $(this);
+            $.get('/post/' + postFile + '/unlike', function(data) {
+                btn.removeClass('btn-dark unlike-btn').addClass('btn-danger like-btn').text('Like');
+                btn.siblings('.like-count').text(data.likes);
+            });
+        });
+    });
+
+    document.querySelectorAll('.comment-btn').forEach(button=>{
+        
+        button.addEventListener('click',function(event){
+            event.preventDefault();
+            var postid=this.parentElement.getAttribute('data-postid');
+            var commentText=this.parentElement.querySelector('.comment-content').value;
+            console.log(commentText)
+            var formData=new FormData();
+            formData.append('content',commentText);
+            fetch('/post/'+postid+'/comment',{
+                method:'POST',
+                body:formData,
+            }).then(response=>response.json)
+            .then(data=>{
+                fetchComments(postid);
+                this.parentElement.querySelector('.comment-content').value="";
+            }).catch(error=>{
+                console.log('error',error)
+            });
+        });
+    });
+    function fetchComments(postid){
+        fetch('/post/'+postid+'/comments')
+        .then(response=>response.json())
+        .then(data=>{
+            var commentListid='#comment-list-'+postid;
+            const commentList=document.querySelector(commentListid);
+            commentList.innerHTML="";
+            data.forEach(comment=>{
+                var commentDiv=document.createElement('div')
+                commentDiv.className="my-1"
+                commentDiv.innerHTML='<strong>'+comment.user+'>  </strong>'+'<p>'+
+                comment.content+'    ('+comment.datetime+')'+'</p>';
+                commentList.appendChild(commentDiv)
+            })
+        });
+    }
+    document.querySelectorAll('.post').forEach(post=>{
+        const postid=post.getAttribute('data-postid');
+        fetchComments(postid);
+    })
+    })
+</script>
+{% endblock body %}

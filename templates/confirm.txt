@@ -1,0 +1,7 @@
+Dear {{uer.username}},
+Welcom to Social blog!
+To confirm ypur account please click on the following link:
+{{url_for('confirm'),token=token,_external=True}}
+Sincerely,
+The Social Blog Team,
+Note: replies to this email address are not monitored.
